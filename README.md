@@ -20,8 +20,8 @@ L'obiettivo di questa challenge è imparare a utilizzare efficacemente GitHub Co
 - **TypeScript** - Tipizzazione statica
 - **Vite** - Build tool e dev server
 - **Tailwind CSS 4** - Framework CSS utility-first
+- **[ReUI](https://reui.io/)** - Component library per React
 - **SQLite (sql.js)** - Database nel browser per la persistenza dei dati
-- **shadcn/ui** - Componenti UI accessibili e personalizzabili
 
 > ⚠️ **Nota**: Per semplicità, tutte le funzionalità dovranno essere implementate utilizzando **SQLite come database nel browser**. Questo permette di avere persistenza dei dati senza necessità di un backend esterno.
 
@@ -29,6 +29,7 @@ L'obiettivo di questa challenge è imparare a utilizzare efficacemente GitHub Co
 
 - Node.js 16.x o superiore
 - NPM installato sul PC
+- (Opzionale) **ReUI MCP Server** per migliorare l'assistenza di GitHub Copilot → [Guida installazione](docs/MCP.md)
 
 ## 🚀 Installazione e Avvio
 
