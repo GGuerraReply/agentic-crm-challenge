@@ -4,7 +4,7 @@ Una challenge pratica per migliorare le proprie skill con **GitHub Copilot** svi
 
 ## 📸 Anteprima
 
-![App Preview](docs/app-preview.png)
+![App Preview](docs/crm.png)
 
 ## 🎯 Obiettivo della Challenge
 
