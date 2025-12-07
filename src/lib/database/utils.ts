@@ -32,6 +32,9 @@ export function deserializeArray(json: string): string[] {
 /**
  * Deserialize a JSON string to an optional array
  * Returns undefined if array is empty or parsing fails
+ * Note: Empty arrays are intentionally treated as undefined to distinguish
+ * between "no data" and "has data". This means empty arrays do not survive
+ * round-trip serialization, which is the intended behavior for optional relationships.
  */
 export function deserializeOptionalArray(json: string): string[] | undefined {
   try {
