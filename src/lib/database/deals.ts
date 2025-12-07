@@ -1,24 +1,6 @@
 import { Deal } from '@/crm/types/deal';
 import { getDatabase, saveDatabase } from './db';
-
-/**
- * Helper function to serialize array fields
- */
-function serializeArray(arr?: string[]): string {
-  return arr ? JSON.stringify(arr) : '[]';
-}
-
-/**
- * Helper function to deserialize array fields
- */
-function deserializeArray(json: string): string[] | undefined {
-  try {
-    const parsed = JSON.parse(json);
-    return Array.isArray(parsed) && parsed.length > 0 ? parsed : undefined;
-  } catch {
-    return undefined;
-  }
-}
+import { serializeOptionalArray, deserializeOptionalArray } from './utils';
 
 /**
  * Get all deals
@@ -40,14 +22,14 @@ export function getAllDeals(): Deal[] {
       id: deal.id as string,
       title: deal.title as string,
       content: deal.content as string,
-      companyIds: deserializeArray(deal.company_ids as string),
-      contactIds: deserializeArray(deal.contact_ids as string),
-      dealIds: deserializeArray(deal.deal_ids as string),
+      companyIds: deserializeOptionalArray(deal.company_ids as string),
+      contactIds: deserializeOptionalArray(deal.contact_ids as string),
+      dealIds: deserializeOptionalArray(deal.deal_ids as string),
       userName: deal.user_name as string,
       dueAt: new Date(deal.due_at as string),
       completedAt: deal.completed_at ? new Date(deal.completed_at as string) : undefined,
       completedBy: deal.completed_by as string | undefined,
-      assignedContactIds: deserializeArray(deal.assigned_contact_ids as string),
+      assignedContactIds: deserializeOptionalArray(deal.assigned_contact_ids as string),
       status: deal.status as Deal['status'] | undefined,
       priority: deal.priority as Deal['priority'] | undefined,
       comments: deal.comments as number | undefined,
@@ -86,14 +68,14 @@ export function getDealById(id: string): Deal | null {
     id: deal.id as string,
     title: deal.title as string,
     content: deal.content as string,
-    companyIds: deserializeArray(deal.company_ids as string),
-    contactIds: deserializeArray(deal.contact_ids as string),
-    dealIds: deserializeArray(deal.deal_ids as string),
+    companyIds: deserializeOptionalArray(deal.company_ids as string),
+    contactIds: deserializeOptionalArray(deal.contact_ids as string),
+    dealIds: deserializeOptionalArray(deal.deal_ids as string),
     userName: deal.user_name as string,
     dueAt: new Date(deal.due_at as string),
     completedAt: deal.completed_at ? new Date(deal.completed_at as string) : undefined,
     completedBy: deal.completed_by as string | undefined,
-    assignedContactIds: deserializeArray(deal.assigned_contact_ids as string),
+    assignedContactIds: deserializeOptionalArray(deal.assigned_contact_ids as string),
     status: deal.status as Deal['status'] | undefined,
     priority: deal.priority as Deal['priority'] | undefined,
     comments: deal.comments as number | undefined,
@@ -126,14 +108,14 @@ export function createDeal(deal: Deal): void {
       deal.id,
       deal.title,
       deal.content,
-      serializeArray(deal.companyIds),
-      serializeArray(deal.contactIds),
-      serializeArray(deal.dealIds),
+      serializeOptionalArray(deal.companyIds),
+      serializeOptionalArray(deal.contactIds),
+      serializeOptionalArray(deal.dealIds),
       deal.userName,
       deal.dueAt.toISOString(),
       deal.completedAt ? deal.completedAt.toISOString() : null,
       deal.completedBy || null,
-      serializeArray(deal.assignedContactIds),
+      serializeOptionalArray(deal.assignedContactIds),
       deal.status || null,
       deal.priority || null,
       deal.comments || null,
@@ -180,14 +162,14 @@ export function updateDeal(id: string, deal: Partial<Deal>): void {
     [
       updated.title,
       updated.content,
-      serializeArray(updated.companyIds),
-      serializeArray(updated.contactIds),
-      serializeArray(updated.dealIds),
+      serializeOptionalArray(updated.companyIds),
+      serializeOptionalArray(updated.contactIds),
+      serializeOptionalArray(updated.dealIds),
       updated.userName,
       updated.dueAt.toISOString(),
       updated.completedAt ? updated.completedAt.toISOString() : null,
       updated.completedBy || null,
-      serializeArray(updated.assignedContactIds),
+      serializeOptionalArray(updated.assignedContactIds),
       updated.status || null,
       updated.priority || null,
       updated.comments || null,

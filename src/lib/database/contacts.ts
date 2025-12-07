@@ -111,7 +111,7 @@ export function createContact(contact: Contact): void {
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       contact.id,
-      contact.avatar || '',
+      contact.avatar || null,
       contact.initials || null,
       contact.name,
       contact.email || null,
@@ -157,7 +157,7 @@ export function updateContact(id: string, contact: Partial<Contact>): void {
       zip = ?, country = ?, social_links = ?, logo = ?, updated_at = ?
     WHERE id = ?`,
     [
-      updated.avatar || '',
+      updated.avatar || null,
       updated.initials || null,
       updated.name,
       updated.email || null,

@@ -1,24 +1,6 @@
 import { Company } from '@/crm/types/company';
 import { getDatabase, saveDatabase } from './db';
-
-/**
- * Helper function to serialize array fields
- */
-function serializeArray(arr?: string[]): string {
-  return arr ? JSON.stringify(arr) : '[]';
-}
-
-/**
- * Helper function to deserialize array fields
- */
-function deserializeArray(json: string): string[] | undefined {
-  try {
-    const parsed = JSON.parse(json);
-    return Array.isArray(parsed) && parsed.length > 0 ? parsed : undefined;
-  } catch {
-    return undefined;
-  }
-}
+import { serializeOptionalArray, deserializeOptionalArray } from './utils';
 
 /**
  * Get all companies
@@ -44,8 +26,8 @@ export function getAllCompanies(): Company[] {
       email: company.email as string | undefined,
       phone: company.phone as string | undefined,
       description: company.description as string | undefined,
-      categoryIds: deserializeArray(company.category_ids as string),
-      contactIds: deserializeArray(company.contact_ids as string),
+      categoryIds: deserializeOptionalArray(company.category_ids as string),
+      contactIds: deserializeOptionalArray(company.contact_ids as string),
       address: company.address as string | undefined,
       state: company.state as string | undefined,
       city: company.city as string | undefined,
@@ -105,8 +87,8 @@ export function getCompanyById(id: string): Company | null {
     email: company.email as string | undefined,
     phone: company.phone as string | undefined,
     description: company.description as string | undefined,
-    categoryIds: deserializeArray(company.category_ids as string),
-    contactIds: deserializeArray(company.contact_ids as string),
+    categoryIds: deserializeOptionalArray(company.category_ids as string),
+    contactIds: deserializeOptionalArray(company.contact_ids as string),
     address: company.address as string | undefined,
     state: company.state as string | undefined,
     city: company.city as string | undefined,
@@ -162,8 +144,8 @@ export function createCompany(company: Company): void {
       company.email || null,
       company.phone || null,
       company.description || null,
-      serializeArray(company.categoryIds),
-      serializeArray(company.contactIds),
+      serializeOptionalArray(company.categoryIds),
+      serializeOptionalArray(company.contactIds),
       company.address || null,
       company.state || null,
       company.city || null,
@@ -225,8 +207,8 @@ export function updateCompany(id: string, company: Partial<Company>): void {
       updated.email || null,
       updated.phone || null,
       updated.description || null,
-      serializeArray(updated.categoryIds),
-      serializeArray(updated.contactIds),
+      serializeOptionalArray(updated.categoryIds),
+      serializeOptionalArray(updated.contactIds),
       updated.address || null,
       updated.state || null,
       updated.city || null,

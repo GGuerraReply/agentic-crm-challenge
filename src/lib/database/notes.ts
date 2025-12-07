@@ -1,43 +1,11 @@
 import { Notes } from '@/crm/types/notes';
 import { getDatabase, saveDatabase } from './db';
-
-/**
- * Helper function to serialize required array fields
- */
-function serializeArray(arr: string[]): string {
-  return JSON.stringify(arr);
-}
-
-/**
- * Helper function to serialize optional array fields
- */
-function serializeOptionalArray(arr?: string[]): string {
-  return arr ? JSON.stringify(arr) : '[]';
-}
-
-/**
- * Helper function to deserialize required array fields
- */
-function deserializeArray(json: string): string[] {
-  try {
-    const parsed = JSON.parse(json);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
-}
-
-/**
- * Helper function to deserialize optional array fields
- */
-function deserializeOptionalArray(json: string): string[] | undefined {
-  try {
-    const parsed = JSON.parse(json);
-    return Array.isArray(parsed) && parsed.length > 0 ? parsed : undefined;
-  } catch {
-    return undefined;
-  }
-}
+import {
+  serializeArray,
+  serializeOptionalArray,
+  deserializeArray,
+  deserializeOptionalArray,
+} from './utils';
 
 /**
  * Get all notes
