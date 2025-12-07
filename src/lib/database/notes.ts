@@ -2,14 +2,21 @@ import { Notes } from '@/crm/types/notes';
 import { getDatabase, saveDatabase } from './db';
 
 /**
- * Helper function to serialize array fields
+ * Helper function to serialize required array fields
  */
-function serializeArray(arr?: string[]): string {
+function serializeArray(arr: string[]): string {
+  return JSON.stringify(arr);
+}
+
+/**
+ * Helper function to serialize optional array fields
+ */
+function serializeOptionalArray(arr?: string[]): string {
   return arr ? JSON.stringify(arr) : '[]';
 }
 
 /**
- * Helper function to deserialize array fields
+ * Helper function to deserialize required array fields
  */
 function deserializeArray(json: string): string[] {
   try {
@@ -17,6 +24,18 @@ function deserializeArray(json: string): string[] {
     return Array.isArray(parsed) ? parsed : [];
   } catch {
     return [];
+  }
+}
+
+/**
+ * Helper function to deserialize optional array fields
+ */
+function deserializeOptionalArray(json: string): string[] | undefined {
+  try {
+    const parsed = JSON.parse(json);
+    return Array.isArray(parsed) && parsed.length > 0 ? parsed : undefined;
+  } catch {
+    return undefined;
   }
 }
 
@@ -45,7 +64,7 @@ export function getAllNotes(): Notes[] {
       status: note.status as Notes['status'],
       assignedContactIds: deserializeArray(note.assigned_contact_ids as string),
       companyIds: deserializeArray(note.company_ids as string),
-      dealIds: deserializeArray(note.deal_ids as string),
+      dealIds: deserializeOptionalArray(note.deal_ids as string),
       completedAt: note.completed_at ? new Date(note.completed_at as string) : undefined,
       completedBy: note.completed_by as string | undefined,
       logo: note.logo as string | undefined,
@@ -82,7 +101,7 @@ export function getNoteById(id: string): Notes | null {
     status: note.status as Notes['status'],
     assignedContactIds: deserializeArray(note.assigned_contact_ids as string),
     companyIds: deserializeArray(note.company_ids as string),
-    dealIds: deserializeArray(note.deal_ids as string),
+    dealIds: deserializeOptionalArray(note.deal_ids as string),
     completedAt: note.completed_at ? new Date(note.completed_at as string) : undefined,
     completedBy: note.completed_by as string | undefined,
     logo: note.logo as string | undefined,
@@ -112,7 +131,7 @@ export function createNote(note: Notes): void {
       note.status,
       serializeArray(note.assignedContactIds),
       serializeArray(note.companyIds),
-      serializeArray(note.dealIds),
+      serializeOptionalArray(note.dealIds),
       note.completedAt ? note.completedAt.toISOString() : null,
       note.completedBy || null,
       note.logo || null,
@@ -155,7 +174,7 @@ export function updateNote(id: string, note: Partial<Notes>): void {
       updated.status,
       serializeArray(updated.assignedContactIds),
       serializeArray(updated.companyIds),
-      serializeArray(updated.dealIds),
+      serializeOptionalArray(updated.dealIds),
       updated.completedAt ? updated.completedAt.toISOString() : null,
       updated.completedBy || null,
       updated.logo || null,
