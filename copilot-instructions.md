@@ -83,16 +83,23 @@ before moving to Agent Mode.
 
 ---
 
-### 3.2 Agent Mode Rules (TO BE FILLED BY PARTICIPANTS)
+### 3.2 Agent Mode – Controlled Execution
 
-- Maximum scope per Agent execution:  
-  `[[ e.g. one component / one helper / one page ]]`
+Agent Mode is used to:
+- implement **approved plan steps**,
+- create or modify files,
+- generate functions, hooks and components.
 
-- Acceptance rules for Agent output:  
-  `[[ Must compile, respect Tailwind, no new libs, etc. ]]`
+Rules:
+<!-- - Implement **one logical step at a time**. -->
+- The developer must **approve or reject** each proposal.
+Large autonomous rewrites are **forbidden** such as more than 15 files.
 
-- When the team will stop Agent Mode and code manually:  
-  `[[ Conditions ]]`
+Example prompt:
+
+> "Switch to Agent Mode.  
+> Implement step 1 and 2 of the approved plan.  
+> Follow project conventions, TypeScript strict and Tailwind v4."
 
 ---
 
@@ -152,40 +159,85 @@ folder (e.g. “under `src/crm/components`”).
 
 ---------------------------------------------------------------------
 
-## 6. Testing Guidelines (TO BE FILLED BY PARTICIPANTS)
+## 6. Testing Guidelines
 
-Select at least one:
+Even in a workshop context, testing should be considered whenever feasible,
+especially for **pure logic and critical behavior**.
 
-- `[ ]` Unit tests for pure logic  
-- `[ ]` Component behavior tests  
-- `[ ]` No tests due to time constraints (must justify)
+- Use **Jest** (or Vitest, depending on repo) as test runner.
+- Use **React Testing Library** for component tests.
 
-Target areas to test:  
-`[[ e.g. filters helper, validation, CSV parser ]]`
+Priorities:
+
+1. **Pure logic first**
+   - Write unit tests for helper functions:
+     - filtering
+     - validation
+     - CSV parsing
+   - Test behavior, not implementation details.
+
+2. **Component behavior**
+   - For key components, test:
+     - visible output given a state/props,
+     - interactions (clicks, form submit),
+     - loading and error states.
+
+3. **Scope**
+   - Aim for at least **1–2 meaningful tests per use case** if time allows.
+   - Integration tests only for **complex interactions** (optional).
+
+4. **Mocks**
+   - Mock external dependencies and API calls (if any).
+   - Keep tests fast and deterministic.
+
+Example prompt:
+
+> "Generate unit tests for the `applyCompanyFilters` helper using Jest.  
+> Focus on behavior: no filters, status only, country only, combined filters."
 
 ---------------------------------------------------------------------
 
-## 7. Security Guidelines (TO BE FILLED BY PARTICIPANTS)
+## 7. Security Guidelines (within this sandbox)
 
-### Fixed Rules
-- No secrets in code.
-- No sensitive data in localStorage/sessionStorage.
-- Validate user input before rendering.
+This project is a **workshop sandbox**, but basic security hygiene still
+applies:
 
-### Team Notes (Optional)
-`[[ Optional additional notes ]]`
+- Sanitize and validate user inputs where they are rendered back to the UI
+  to prevent XSS-like issues.
+- Avoid storing **sensitive data** in `localStorage` or `sessionStorage`.
+- Do NOT embed secrets, tokens or credentials in code.
+- Any external API calls (if introduced):
+  - must use HTTPS,
+  - must be clearly mocked or stubbed for the workshop.
+- Prefer safe defaults:
+  - never `dangerouslySetInnerHTML` unless absolutely necessary and justified.
+
+Example prompt:
+
+> "Review this form handling logic from a security perspective.  
+> Identify potential XSS or unsafe patterns and propose safer alternatives."
 
 ---------------------------------------------------------------------
 
-## 8. Accessibility Guidelines (TO BE FILLED BY PARTICIPANTS)
+## 8. Accessibility Guidelines
 
+Aim for **basic but meaningful accessibility**:
 
-- `[ ]` Using semantic HTML  
-- `[ ]` Ensuring keyboard navigation for main interactions  
-- `[ ]` Providing basic aria-labels / alt text  
+- Use **semantic HTML** elements where possible.
+- Use proper **ARIA attributes and roles** when semantics alone are
+  not enough.
+- Ensure **keyboard navigation** works for interactive elements
+  (buttons, links, inputs).
+- Provide:
+  - `alt` text for images,
+  - descriptive text for icons when they convey meaning.
+- Keep **color contrast** reasonable (Tailwind tokens usually help).
+- When possible, test with accessibility tools (even minimally).
 
-Known limitations:  
-`[[ Optional ]]`
+Example prompt:
+
+> "Review this component for basic accessibility.  
+> Suggest improvements for keyboard navigation and ARIA usage."
 
 ---------------------------------------------------------------------
 
@@ -292,18 +344,5 @@ Even with Agent Mode active:
 8. Demo the feature and discuss where Copilot helped or struggled.
 
 ---------------------------------------------------------------------
-
-## 13.  Definition of DONE (TO BE AGREED BY TEAM)
-
-This challenge is considered **DONE** when:
-
-- `[ ]` The main feature works end-to-end in the UI  
-- `[ ]` The agreed Plan steps are completed  
-- `[ ]` The selected testing expectations are met  
-- `[ ]` Known limitations are documented  
-
-Additional acceptance criteria:  
-`[[ Optional ]]`
-
 
 End of Instructions.
