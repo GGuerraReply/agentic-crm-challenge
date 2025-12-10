@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { mockContacts } from '@/crm/mock/contacts';
+import { Contact } from '@/crm/types/contact';
+import { ContactRepository } from '@/db';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { RiCheckboxCircleFill } from '@remixicon/react';
 import { format } from 'date-fns';
@@ -10,11 +12,7 @@ import { toast } from 'sonner';
 import { z } from 'zod';
 import { cn } from '@/lib/utils';
 import { Alert, AlertIcon, AlertTitle } from '@/components/ui/alert';
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage
-} from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button, ButtonArrow } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import {
@@ -90,9 +88,11 @@ const FormSchema = z.object({
 export function NewCompanySheet({
   open,
   onOpenChange,
+  onCreated,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onCreated?: () => void;
 }) {
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -125,15 +125,51 @@ export function NewCompanySheet({
     },
   });
 
-  const onSubmit = () => {
-    toast.custom((t) => (
-      <Alert variant="mono" icon="primary" onClose={() => toast.dismiss(t)}>
-        <AlertIcon>
-          <RiCheckboxCircleFill />
-        </AlertIcon>
-        <AlertTitle>Your form has been successfully submitted</AlertTitle>
-      </Alert>
-    ));
+  const onSubmit = async (values: z.infer<typeof FormSchema>) => {
+    const repo = new ContactRepository();
+    const now = new Date();
+
+    // Resolve company name from selected value (mock list uses contact id as value)
+    const companyName = values.company
+      ? companies.find((c) => c.value === values.company)?.label || undefined
+      : undefined;
+
+    const contact: Contact = {
+      id: crypto.randomUUID(),
+      avatar: '',
+      name: values.name,
+      email: values.email || undefined,
+      phone: values.phone || undefined,
+      position: values.position || undefined,
+      company: companyName,
+      address: values.address || undefined,
+      state: values.state || undefined,
+      city: values.city || undefined,
+      zip: values.zip || undefined,
+      country: values.country || undefined,
+      socialLinks: undefined,
+      createdAt: now,
+      updatedAt: now,
+      logo: values.logo || undefined,
+    };
+
+    try {
+      await repo.create(contact);
+      toast.custom((t) => (
+        <Alert variant="mono" icon="primary" onClose={() => toast.dismiss(t)}>
+          <AlertIcon>
+            <RiCheckboxCircleFill />
+          </AlertIcon>
+          <AlertTitle>Your form has been successfully submitted</AlertTitle>
+        </Alert>
+      ));
+      onOpenChange(false);
+      form.reset();
+      onCreated?.();
+    } catch (e) {
+      toast.error('Failed to save contact');
+      console.error('Create contact failed', e);
+    }
   };
 
   const handleReset = () => {
@@ -667,9 +703,7 @@ export function NewCompanySheet({
                                             setEmailOpen(false);
                                           }}
                                         >
-                                          <Link
-                                            to={`/companies/${contact.id}`}
-                                          >
+                                          <Link to={`/companies/${contact.id}`}>
                                             {contact.email}
                                           </Link>
                                         </CommandItem>
@@ -872,7 +906,7 @@ export function NewCompanySheet({
             <Button variant="outline" onClick={handleReset}>
               Cancel
             </Button>
-            <Button onClick={onSubmit}>Save Contact</Button>
+            <Button onClick={form.handleSubmit(onSubmit)}>Save Contact</Button>
           </div>
         </SheetFooter>
       </SheetContent>

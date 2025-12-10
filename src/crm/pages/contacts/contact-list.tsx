@@ -1,6 +1,6 @@
-import { useMemo, useState } from 'react';
-import { mockContacts } from '@/crm/mock/contacts';
+import { useEffect, useMemo, useState } from 'react';
 import { Contact } from '@/crm/types/contact';
+import { ContactRepository } from '@/db';
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -40,10 +40,17 @@ import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 
 interface ContactListProps {
   filter?: 'all' | 'today' | 'week' | 'completed';
+  refreshToken?: number;
 }
 
-const ContactList = ({ filter = 'all' }: ContactListProps) => {
+const ContactList = ({
+  filter = 'all',
+  refreshToken = 0,
+}: ContactListProps) => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [contacts, setContacts] = useState<Contact[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<
@@ -244,7 +251,7 @@ const ContactList = ({ filter = 'all' }: ContactListProps) => {
   ];
 
   const filteredContacts = useMemo(() => {
-    let contacts = mockContacts;
+    let list = contacts;
     const now = new Date();
     const todayStart = new Date(
       now.getFullYear(),
@@ -259,7 +266,7 @@ const ContactList = ({ filter = 'all' }: ContactListProps) => {
 
     // Apply time-based filter
     if (filter !== 'all') {
-      contacts = contacts.filter((contact) => {
+      list = list.filter((contact) => {
         const contactDate = new Date(contact.updatedAt);
 
         switch (filter) {
@@ -280,20 +287,20 @@ const ContactList = ({ filter = 'all' }: ContactListProps) => {
 
     // Apply position filter
     if (selectedPositions.length > 0) {
-      contacts = contacts.filter((contact) =>
+      list = list.filter((contact) =>
         selectedPositions.includes(contact.position || ''),
       );
     }
 
     // Apply company filter
     if (selectedCompanies.length > 0) {
-      contacts = contacts.filter((contact) =>
+      list = list.filter((contact) =>
         selectedCompanies.includes(contact.company || ''),
       );
     }
 
     // Apply search filter
-    return contacts.filter(
+    return list.filter(
       (contact: Contact) =>
         contact.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         contact.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -301,7 +308,38 @@ const ContactList = ({ filter = 'all' }: ContactListProps) => {
         contact.position?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         contact.company?.toLowerCase().includes(searchQuery.toLowerCase()),
     );
-  }, [searchQuery, filter, selectedPositions, selectedCompanies]);
+  }, [contacts, searchQuery, filter, selectedPositions, selectedCompanies]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const repo = new ContactRepository();
+    async function load() {
+      setLoading(true);
+      setLoadError(null);
+      try {
+        let data: Contact[] = [];
+        if (filter === 'today') {
+          data = await repo.getLeads();
+        } else if (filter === 'week') {
+          data = await repo.getFollowUps();
+        } else if (filter === 'completed') {
+          data = await repo.getPipeline();
+        } else {
+          data = await repo.getAll('name ASC');
+        }
+        if (!cancelled) setContacts(data);
+      } catch (e) {
+        console.error('Failed to load contacts from DB', e);
+        if (!cancelled) setLoadError('Failed to load contacts');
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, [filter, refreshToken]);
 
   const formatDate = (date: Date) => {
     return new Intl.DateTimeFormat('en-US', {
@@ -347,6 +385,14 @@ const ContactList = ({ filter = 'all' }: ContactListProps) => {
         <CardHeader className="px-4 py-3 -mt-4">
           <div className="flex items-center flex-wrap gap-2 justify-between w-full">
             <div className="flex items-center gap-2">
+              {loading && (
+                <div className="text-xs text-muted-foreground">
+                  Loading contacts…
+                </div>
+              )}
+              {loadError && (
+                <div className="text-xs text-red-600">{loadError}</div>
+              )}
               {/* Search */}
               <div className="relative">
                 <Search className="size-4 text-muted-foreground absolute start-3 top-1/2 -translate-y-1/2" />
@@ -388,7 +434,7 @@ const ContactList = ({ filter = 'all' }: ContactListProps) => {
                       <CommandEmpty>No positions found.</CommandEmpty>
                       <CommandGroup>
                         {Array.from(
-                          new Set(mockContacts.map((c) => c.position)),
+                          new Set(contacts.map((c) => c.position)),
                         ).map((position) => (
                           <CommandItem
                             key={position}
@@ -439,7 +485,7 @@ const ContactList = ({ filter = 'all' }: ContactListProps) => {
                       <CommandEmpty>No companies found.</CommandEmpty>
                       <CommandGroup>
                         {Array.from(
-                          new Set(mockContacts.map((c) => c.company)),
+                          new Set(contacts.map((c) => c.company)),
                         ).map((company) => (
                           <CommandItem
                             key={company}
@@ -465,9 +511,8 @@ const ContactList = ({ filter = 'all' }: ContactListProps) => {
                                 <AvatarImage
                                   className="size-4"
                                   src={
-                                    mockContacts.find(
-                                      (c) => c.company === company,
-                                    )?.logo
+                                    contacts.find((c) => c.company === company)
+                                      ?.logo
                                   }
                                   alt={company || 'Company'}
                                 />

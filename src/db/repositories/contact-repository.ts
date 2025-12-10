@@ -3,12 +3,12 @@
  * Handles CRUD operations and queries for contacts
  */
 
-import { Database } from 'sql.js';
 import { Contact } from '@/crm/types/contact';
+import { Database } from 'sql.js';
+import { fromDbContact, toDbContact } from '../mappers';
 import { DbContact } from '../types';
-import { toDbContact, fromDbContact } from '../mappers';
-import { BaseRepository } from './base-repository';
 import { executeQuery } from '../utils';
+import { BaseRepository } from './base-repository';
 
 export class ContactRepository extends BaseRepository<Contact, DbContact> {
   constructor(db?: Database) {
@@ -51,7 +51,7 @@ export class ContactRepository extends BaseRepository<Contact, DbContact> {
       const dbEntities = executeQuery<DbContact>(
         query,
         [`%${searchTerm}%`],
-        this.db
+        this.db,
       );
       return dbEntities.map((dbEntity) => this.fromDb(dbEntity));
     } catch (error) {
@@ -98,11 +98,68 @@ export class ContactRepository extends BaseRepository<Contact, DbContact> {
       const dbEntities = executeQuery<DbContact>(
         query,
         [startDate.getTime(), endDate.getTime()],
-        this.db
+        this.db,
       );
       return dbEntities.map((dbEntity) => this.fromDb(dbEntity));
     } catch (error) {
       console.error('Failed to find contacts by date range:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get contacts for "Leads" tab
+   * Simplified: recently updated within today
+   */
+  async getLeads(): Promise<Contact[]> {
+    const now = new Date();
+    const todayStart = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+    );
+    return this.findByDateRange(todayStart, now);
+  }
+
+  /**
+   * Get contacts for "Follow-ups" tab
+   * Simplified: updated within last 7 days
+   */
+  async getFollowUps(): Promise<Contact[]> {
+    const now = new Date();
+    const weekStart = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate() - 7,
+    );
+    return this.findByDateRange(weekStart, now);
+  }
+
+  /**
+   * Get contacts for "Pipeline" tab
+   * Simplified: updated earlier than 7 days ago
+   */
+  async getPipeline(): Promise<Contact[]> {
+    try {
+      const now = new Date();
+      const weekStart = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate() - 7,
+      );
+      const query = `
+        SELECT * FROM ${this.tableName}
+        WHERE updated_at < ?
+        ORDER BY updated_at DESC
+      `;
+      const dbEntities = executeQuery<DbContact>(
+        query,
+        [weekStart.getTime()],
+        this.db,
+      );
+      return dbEntities.map((dbEntity) => this.fromDb(dbEntity));
+    } catch (error) {
+      console.error('Failed to get pipeline contacts:', error);
       throw error;
     }
   }

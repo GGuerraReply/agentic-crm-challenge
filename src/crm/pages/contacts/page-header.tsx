@@ -23,7 +23,7 @@ import { Switch } from '@/components/ui/switch';
 import { ContentHeader } from '../../layout/components/content-header';
 import { NewCompanySheet } from './new-contact-sheet';
 
-export function PageHeader() {
+export function PageHeader({ onCreated }: { onCreated?: () => void }) {
   const [companySheetOpen, setCompanySheetOpen] = useState(false);
 
   const onCompanySheetOpenChange = (open: boolean) => {
@@ -112,6 +112,7 @@ export function PageHeader() {
         <NewCompanySheet
           open={companySheetOpen}
           onOpenChange={onCompanySheetOpenChange}
+          onCreated={onCreated}
         />
       </div>
     </ContentHeader>
